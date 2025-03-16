@@ -2,7 +2,7 @@ import { ConnectionConfig, MonitoringData } from '../types/monitoring';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
-class APIService {
+export class APIService {
   private connectionId: string | null = null;
 
   async connect(config: ConnectionConfig): Promise<void> {
