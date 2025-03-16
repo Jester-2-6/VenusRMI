@@ -1,7 +1,7 @@
 import { ConnectionConfig, MonitoringData, SystemInfo, CPUInfo, MemoryInfo, StorageInfo, GPUInfo } from '../types/monitoring';
 import { NodeSSH } from 'node-ssh';
 
-class SSHService {
+export class SSHService {
   private ssh: NodeSSH;
   private config: ConnectionConfig | null = null;
 
@@ -71,10 +71,12 @@ class SSHService {
         this.executeCommand("cat /sys/class/thermal/thermal_zone*/temp 2>/dev/null | awk '{print $1/1000}'"),
       ]);
 
+      const temperature = temp.trim() ? parseFloat(temp.trim()) : undefined;
+
       return {
         usage: parseFloat(usage),
         cores: parseInt(cores),
-        temperature: temp ? parseFloat(temp) : undefined,
+        temperature,
       };
     } else {
       // Windows implementation
@@ -127,7 +129,7 @@ class SSHService {
       const lines = output.split('\n').slice(1);
       
       return lines.map(line => {
-        const [filesystem, total, used, free, mountPoint] = line.split(/\s+/);
+        const [, total, used, free, mountPoint] = line.split(/\s+/);
         return {
           total: parseInt(total),
           used: parseInt(used),
@@ -142,9 +144,18 @@ class SSHService {
       
       return drives.map(drive => {
         const lines = drive.split('\n');
-        const total = parseInt(lines[0].split('=')[1]);
-        const free = parseInt(lines[1].split('=')[1]);
-        const mountPoint = lines[2].split('=')[1];
+        const values: { [key: string]: string } = {};
+        
+        lines.forEach(line => {
+          const [key, value] = line.split('=');
+          if (key && value) {
+            values[key.trim()] = value.trim();
+          }
+        });
+
+        const total = parseInt(values['Size']);
+        const free = parseInt(values['FreeSpace']);
+        const mountPoint = values['Caption'];
 
         return {
           total,

@@ -97,6 +97,47 @@ src/
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Run TypeScript type checking
 
+### Testing
+
+Run tests:
+```bash
+npm test
+```
+
+Run linting:
+```bash
+npm run lint
+```
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment. The pipeline includes:
+
+### Continuous Integration
+- Runs on every push to main and pull requests
+- Executes tests and linting
+- Ensures code quality before merging
+
+### Continuous Deployment
+- Automatically creates releases when tags are pushed to main
+- Builds and packages the application for:
+  - Windows (.exe)
+  - macOS (.dmg)
+  - Linux (.AppImage, .deb, .rpm)
+
+### Release Process
+
+1. Create a new tag:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+2. The release workflow will automatically:
+   - Build the application for all platforms
+   - Create a GitHub release
+   - Upload the built packages
+
 ## Contributing
 
 1. Fork the repository
