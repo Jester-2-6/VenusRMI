@@ -1,13 +1,11 @@
 import { ConnectionConfig, MonitoringData, SystemInfo, CPUInfo, MemoryInfo, StorageInfo, GPUInfo } from '../types/monitoring';
 
-class MockService {
+export class MockService {
   private config: ConnectionConfig | null = null;
   private interval: NodeJS.Timeout | null = null;
 
   async connect(config: ConnectionConfig): Promise<void> {
     this.config = config;
-    // Simulate connection delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   async disconnect(): Promise<void> {
