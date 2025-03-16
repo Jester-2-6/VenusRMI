@@ -145,6 +145,19 @@ git push origin v1.0.0
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+   - Use the provided pull request template
+   - Fill in all relevant sections
+   - Ensure all tests pass
+   - Add screenshots if applicable
+   - Request review from maintainers
+
+### Pull Request Guidelines
+- Keep pull requests focused and small
+- Include tests for new features
+- Update documentation as needed
+- Follow the existing code style
+- Ensure all CI checks pass
+- Respond to review comments promptly
 
 ## License
 
