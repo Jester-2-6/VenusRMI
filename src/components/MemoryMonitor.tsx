@@ -5,7 +5,17 @@ import {
   LinearProgress,
   Grid,
   Paper,
+  useTheme,
 } from '@mui/material';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { MemoryInfo } from '../types/monitoring';
 
 interface MemoryMonitorProps {
@@ -13,6 +23,8 @@ interface MemoryMonitorProps {
 }
 
 const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ data }) => {
+  const theme = useTheme();
+
   if (!data) {
     return (
       <Box>
@@ -39,6 +51,8 @@ const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ data }) => {
 
   const memoryUsage = (data.used / data.total) * 100;
   const swapUsage = (data.swapUsed / data.swapTotal) * 100;
+  const color = theme.palette.primary.main;
+  const gradientColor = theme.palette.primary.light;
 
   return (
     <Box>
@@ -52,6 +66,11 @@ const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ data }) => {
               p: 2,
               backgroundColor: 'rgba(255, 255, 255, 0.05)',
               backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              transition: 'transform 0.2s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+              },
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -71,6 +90,7 @@ const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ data }) => {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 '& .MuiLinearProgress-bar': {
                   borderRadius: 4,
+                  background: `linear-gradient(90deg, ${color} 0%, ${gradientColor} 100%)`,
                 },
               }}
             />
@@ -84,12 +104,18 @@ const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ data }) => {
             </Box>
           </Paper>
         </Grid>
+
         <Grid item xs={12}>
           <Paper
             sx={{
               p: 2,
               backgroundColor: 'rgba(255, 255, 255, 0.05)',
               backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              transition: 'transform 0.2s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+              },
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -109,6 +135,7 @@ const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ data }) => {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 '& .MuiLinearProgress-bar': {
                   borderRadius: 4,
+                  background: `linear-gradient(90deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.light} 100%)`,
                 },
               }}
             />
@@ -119,6 +146,77 @@ const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ data }) => {
               <Typography variant="caption" color="text.secondary">
                 {formatBytes(data.swapTotal - data.swapUsed)} free
               </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Memory Usage History Graph */}
+        <Grid item xs={12}>
+          <Paper
+            sx={{
+              p: 2,
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              transition: 'transform 0.2s',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+              },
+            }}
+          >
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Memory Usage History
+            </Typography>
+            <Box sx={{ height: 150 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data.historicalUsage}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                  <XAxis
+                    dataKey="timestamp"
+                    tickFormatter={(value) => new Date(value).toLocaleTimeString()}
+                    stroke="rgba(255, 255, 255, 0.7)"
+                    domain={['dataMin', 'dataMax']}
+                    type="number"
+                    scale="time"
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    tickFormatter={(value) => `${value}%`}
+                    stroke="rgba(255, 255, 255, 0.7)"
+                    domain={[0, 100]}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '4px',
+                    }}
+                    labelFormatter={(value) => new Date(value).toLocaleString()}
+                    formatter={(value: number) => [`${value}%`, 'Usage']}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={color}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                    name="Physical Memory"
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    data={data.historicalSwapUsage}
+                    stroke={theme.palette.warning.main}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                    name="Swap"
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </Box>
           </Paper>
         </Grid>

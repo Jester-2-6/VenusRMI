@@ -28,6 +28,80 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updateInterval, setUpdateInterval] = useState<NodeJS.Timeout | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Check initial connection state
+  useEffect(() => {
+    const initializeConnection = async () => {
+      try {
+        await apiService.ensureConnected();
+        if (apiService.isCurrentlyConnected()) {
+          setIsConnected(true);
+          const data = await apiService.getMonitoringData();
+          setMonitoringData(data);
+          startMonitoring();
+        }
+      } catch (err) {
+        console.error('Initial connection check failed:', err);
+      } finally {
+        setIsInitialized(true);
+      }
+    };
+
+    initializeConnection();
+
+    // Cleanup function
+    return () => {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
+    };
+  }, []);
+
+  const startMonitoring = () => {
+    if (updateInterval) {
+      clearInterval(updateInterval);
+    }
+
+    // Fetch initial data immediately
+    apiService.getMonitoringData()
+      .then(newData => {
+        setMonitoringData(newData);
+        setError(null);
+        setIsConnected(true);
+      })
+      .catch(handleError);
+
+    // Then set up the interval for subsequent updates
+    const interval = setInterval(async () => {
+      if (!isInitialized) return;
+
+      try {
+        const newData = await apiService.getMonitoringData();
+        setMonitoringData(newData);
+        setError(null);
+        setIsConnected(true);
+      } catch (err) {
+        handleError(err);
+      }
+    }, 5000); // Exactly 5 seconds
+
+    setUpdateInterval(interval);
+  };
+
+  const handleError = (err: any) => {
+    console.error('Failed to update monitoring data:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Failed to update monitoring data';
+    setError(errorMessage);
+    
+    if (errorMessage.includes('Connection lost') || errorMessage.includes('Not connected')) {
+      setIsConnected(false);
+      if (updateInterval) {
+        clearInterval(updateInterval);
+        setUpdateInterval(null);
+      }
+    }
+  };
 
   const handleConnect = async (config: ConnectionConfig) => {
     try {
@@ -38,22 +112,10 @@ function App() {
       // Start monitoring
       const data = await apiService.getMonitoringData();
       setMonitoringData(data);
-      
-      // Set up periodic updates
-      const interval = setInterval(async () => {
-        try {
-          const newData = await apiService.getMonitoringData();
-          setMonitoringData(newData);
-        } catch (err) {
-          console.error('Failed to update monitoring data:', err);
-          setError('Failed to update monitoring data');
-        }
-      }, 5000); // Update every 5 seconds
-      
-      setUpdateInterval(interval);
+      startMonitoring();
     } catch (err) {
       console.error('Connection failed:', err);
-      setError('Connection failed. Please check your credentials and try again.');
+      setError(err instanceof Error ? err.message : 'Connection failed. Please check your credentials and try again.');
       setIsConnected(false);
     }
   };
@@ -70,21 +132,9 @@ function App() {
       setError(null);
     } catch (err) {
       console.error('Disconnect failed:', err);
-      setError('Failed to disconnect. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to disconnect. Please try again.');
     }
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (updateInterval) {
-        clearInterval(updateInterval);
-      }
-      if (isConnected) {
-        apiService.disconnect();
-      }
-    };
-  }, [updateInterval, isConnected]);
 
   return (
     <ThemeProvider theme={darkTheme}>

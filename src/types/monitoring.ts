@@ -10,6 +10,8 @@ export interface CPUInfo {
   usage: number;
   cores: number;
   temperature?: number;
+  historicalUsage: HistoricalDataPoint[];
+  historicalTemperature?: HistoricalDataPoint[];
 }
 
 export interface MemoryInfo {
@@ -18,6 +20,8 @@ export interface MemoryInfo {
   free: number;
   swapTotal: number;
   swapUsed: number;
+  historicalUsage: HistoricalDataPoint[];
+  historicalSwapUsage: HistoricalDataPoint[];
 }
 
 export interface StorageInfo {
@@ -25,17 +29,19 @@ export interface StorageInfo {
   used: number;
   free: number;
   mountPoint: string;
+  historicalUsage: HistoricalDataPoint[];
+  historicalReadSpeed: HistoricalDataPoint[];
+  historicalWriteSpeed: HistoricalDataPoint[];
 }
 
 export interface GPUInfo {
-  name: string;
   usage: number;
-  memory: {
-    total: number;
-    used: number;
-    free: number;
-  };
+  memoryUsed: number;
+  memoryTotal: number;
   temperature?: number;
+  historicalUsage: HistoricalDataPoint[];
+  historicalMemoryUsage: HistoricalDataPoint[];
+  historicalTemperature?: HistoricalDataPoint[];
 }
 
 export interface MonitoringData {
@@ -53,4 +59,9 @@ export interface ConnectionConfig {
   password?: string;
   privateKey?: string;
   os: OS;
+}
+
+export interface HistoricalDataPoint {
+  timestamp: number;
+  value: number;
 } 

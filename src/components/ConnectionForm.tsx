@@ -16,7 +16,8 @@ import { ConnectionConfig, OS } from '../types/monitoring';
 interface ConnectionFormProps {
   onConnect: (config: ConnectionConfig) => void;
   onDisconnect?: () => void;
-  isConnected: boolean;
+  isConnected?: boolean;
+  error?: string | null;
 }
 
 const ConnectionForm: React.FC<ConnectionFormProps> = ({ onConnect, onDisconnect, isConnected }) => {
